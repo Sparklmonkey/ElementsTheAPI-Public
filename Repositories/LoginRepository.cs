@@ -44,6 +44,12 @@ namespace ElementsTheAPI.Repositories
             return userAsyncCursor.FirstOrDefault();
         }
 
+        public async Task<bool> SaveToLog(LogData logData)
+        {
+            await _context.LogCollection.InsertOneAsync(logData);
+            return true;
+        }
+
         public async Task<LoginResponse> LoginUser(LoginRequest loginRequest)
         {
             IAsyncCursor<UserData> userAsyncCursor = await _context.UserDataCollection.FindAsync(p => p.Username == loginRequest.Username);
@@ -87,6 +93,15 @@ namespace ElementsTheAPI.Repositories
                 ErrorMessage = ErrorCases.AllGood
             };
 
+            await SaveToLog(new LogData()
+            {
+                AppVersion = loginRequest.AppVersion,
+                Platform = loginRequest.Platform,
+                Username = loginRequest.Username,
+                Time = DateTime.Now.ToString(),
+                PlayerId = userData.Id,
+                SaveId = userData.SavedDataId
+            });
             return returnValue;
         }
 
@@ -157,6 +172,16 @@ namespace ElementsTheAPI.Repositories
                 ErrorMessage = ErrorCases.AllGood,
                 Token = token
             };
+
+            await SaveToLog(new LogData() 
+                { 
+                    AppVersion = loginRequest.AppVersion, 
+                    Platform = loginRequest.Platform, 
+                    Username = loginRequest.Username, 
+                    Time = DateTime.Now.ToString(),
+                    PlayerId = userData.Id,
+                    SaveId = userData.SavedDataId
+                });
             return returnValue;
         }
 
@@ -176,6 +201,29 @@ namespace ElementsTheAPI.Repositories
             smtp.CheckCertificateRevocation = false;
             smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
             await smtp.SendAsync(email);
+        }
+
+        public async Task<LoginResponse> CheckAppVersion(LoginRequest loginRequest)
+        {
+            var appVersion = new Version(loginRequest.AppVersion);
+            IAsyncCursor<EnvFlags> envCursor = await _context.EnvFlagCollection.FindAsync(p => p.Id == "627d2a5e66c8edf696d0c7db");
+            var minVersion = new Version(envCursor.FirstOrDefault().MinAppVersion);
+
+            var result = appVersion.CompareTo(minVersion);
+            if(result < 0)
+            {
+                return new LoginResponse()
+                {
+                    ErrorMessage = ErrorCases.AppUpdateRequired
+                };
+            }
+            else
+            {
+                return new LoginResponse()
+                {
+                    ErrorMessage = ErrorCases.AllGood
+                };
+            }
         }
     }
 }

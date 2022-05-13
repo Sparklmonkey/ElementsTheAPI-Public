@@ -7,5 +7,7 @@ namespace ElementsTheAPI.Data
     {
         IMongoCollection<UserData> UserDataCollection { get; }
         IMongoCollection<SavedData> SavedDataCollection { get; }
+        IMongoCollection<LogData> LogCollection { get; }
+        IMongoCollection<EnvFlags> EnvFlagCollection { get; }
     }
 }

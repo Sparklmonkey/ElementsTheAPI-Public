@@ -13,9 +13,13 @@ namespace ElementsTheAPI.Data
 
             UserDataCollection = database.GetCollection<UserData>(configuration.GetValue<string>("DatabaseSettings:UserCollectionName"));
             SavedDataCollection = database.GetCollection<SavedData>(configuration.GetValue<string>("DatabaseSettings:SavedDataCollectionName"));
+            LogCollection = database.GetCollection<LogData>(configuration.GetValue<string>("DatabaseSettings:LogCollectionName"));
+            EnvFlagCollection = database.GetCollection<EnvFlags>(configuration.GetValue<string>("DatabaseSettings:EnvFlagsConnectionName"));
 
         }
         public IMongoCollection<UserData> UserDataCollection { get; }
         public IMongoCollection<SavedData> SavedDataCollection { get; }
+        public IMongoCollection<LogData> LogCollection { get; }
+        public IMongoCollection<EnvFlags> EnvFlagCollection { get; }
     }
 }

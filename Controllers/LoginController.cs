@@ -45,5 +45,14 @@ namespace ElementsTheAPI.Controllers
         {
             return Ok(await _repository.LoginUser(loginRequest));
         }
+
+        [AllowAnonymous]
+        [Route("version", Name = "Version")]
+        [HttpPost]
+        [ProducesResponseType(typeof(LoginResponse), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<LoginResponse>> CheckAppVersion([FromBody] LoginRequest loginRequest)
+        {
+            return Ok(await _repository.CheckAppVersion(loginRequest));
+        }
     }
 }

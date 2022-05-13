@@ -131,6 +131,7 @@ namespace ElementsTheAPI.Repositories
             response.Token = token;
             //Create new Saved Data
             SavedData newSavedData = new SavedData().GetDefault();
+            
             //Update MongoDB with new saved data
             var updateResult = await _context.SavedDataCollection.ReplaceOneAsync(filter: g => g.Id == userData.SavedDataId, replacement: newSavedData);
 
@@ -192,7 +193,7 @@ namespace ElementsTheAPI.Repositories
             }
 
             //Check if passwordShould be updated
-            if(accountRequest.NewPassword != "" && accountRequest.OldPassword != "")
+            if(accountRequest.NewPassword != "" && accountRequest.OldPassword != "?")
             {
                 //Confirm Old password is valid
                 string hashPass = accountRequest.OldPassword.EncryptPassword(userData.Salt);

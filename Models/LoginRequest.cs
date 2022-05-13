@@ -11,5 +11,7 @@ namespace ElementsTheAPI.Models
         public string Password { get; set; }
         public string EmailAddress { get; set; }
         public string OtpCode { get; set; }
+        public string Platform { get; set; }
+        public string AppVersion { get; set; }
     }
 }

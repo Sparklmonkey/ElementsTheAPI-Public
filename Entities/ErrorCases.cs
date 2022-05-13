@@ -12,6 +12,7 @@ namespace ElementsTheAPI.Entities
         IncorrectEmail,
         OtpIncorrect,
         OtpExpired,
-        AccountNotVerified
+        AccountNotVerified,
+        AppUpdateRequired
     }
 }

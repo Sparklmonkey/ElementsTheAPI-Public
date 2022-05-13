@@ -12,5 +12,6 @@ namespace ElementsTheAPI.Repositories
         Task<LoginResponse> RegisterUser(LoginRequest loginRequest);
         Task<LoginResponse> LoginUser(LoginRequest loginRequest);
         Task<UserData> GetById(string id);
+        Task<LoginResponse> CheckAppVersion(LoginRequest loginRequest);
     }
 }
