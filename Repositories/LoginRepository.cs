@@ -52,6 +52,20 @@ namespace ElementsTheAPI.Repositories
 
         public async Task<LoginResponse> LoginUser(LoginRequest loginRequest)
         {
+            Console.WriteLine("VersionCheck");
+            var appVersion = new Version(loginRequest.AppVersion);
+            IAsyncCursor<EnvFlags> envCursor = await _context.EnvFlagCollection.FindAsync(p => p.Id == "627d2a5e66c8edf696d0c7db");
+            var minVersion = new Version(envCursor.FirstOrDefault().MinAppVersion);
+
+            var result = appVersion.CompareTo(minVersion);
+            if (result < 0)
+            {
+                return new LoginResponse()
+                {
+                    ErrorMessage = ErrorCases.AppUpdateRequired
+                };
+            }
+
             IAsyncCursor<UserData> userAsyncCursor = await _context.UserDataCollection.FindAsync(p => p.Username == loginRequest.Username);
             UserData userData = userAsyncCursor.FirstOrDefault();
 
@@ -205,6 +219,7 @@ namespace ElementsTheAPI.Repositories
 
         public async Task<LoginResponse> CheckAppVersion(LoginRequest loginRequest)
         {
+            Console.WriteLine("VersionCheck");
             var appVersion = new Version(loginRequest.AppVersion);
             IAsyncCursor<EnvFlags> envCursor = await _context.EnvFlagCollection.FindAsync(p => p.Id == "627d2a5e66c8edf696d0c7db");
             var minVersion = new Version(envCursor.FirstOrDefault().MinAppVersion);
