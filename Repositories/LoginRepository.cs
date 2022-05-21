@@ -17,6 +17,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using ElementsTheAPI.Filters;
+using MySqlConnector;
+using System.Data.SqlClient;
+using System.Data;
+using Dapper;
+using System.Collections.Generic;
 
 namespace ElementsTheAPI.Repositories
 {
@@ -51,7 +56,7 @@ namespace ElementsTheAPI.Repositories
         }
 
         public async Task<LoginResponse> LoginUser(LoginRequest loginRequest)
-        {
+        { 
             Console.WriteLine("VersionCheck");
             var appVersion = new Version(loginRequest.AppVersion);
             IAsyncCursor<EnvFlags> envCursor = await _context.EnvFlagCollection.FindAsync(p => p.Id == "627d2a5e66c8edf696d0c7db");
@@ -147,7 +152,7 @@ namespace ElementsTheAPI.Repositories
                 };
             }
 
-            SavedData newSavedData = new SavedData().GetDefault();
+            SavedData newSavedData = new SavedData();
 
 
             await _context.SavedDataCollection.InsertOneAsync(newSavedData);
@@ -219,26 +224,72 @@ namespace ElementsTheAPI.Repositories
 
         public async Task<LoginResponse> CheckAppVersion(LoginRequest loginRequest)
         {
-            Console.WriteLine("VersionCheck");
-            var appVersion = new Version(loginRequest.AppVersion);
-            IAsyncCursor<EnvFlags> envCursor = await _context.EnvFlagCollection.FindAsync(p => p.Id == "627d2a5e66c8edf696d0c7db");
-            var minVersion = new Version(envCursor.FirstOrDefault().MinAppVersion);
+            string newString = "Data Source=208.88.227.38\\MSSQLSERVER2017;User ID=sparklmo_mainadmin;Password=Drakonus!1993;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+            SqlConnection Connection = new SqlConnection(newString);
 
-            var result = appVersion.CompareTo(minVersion);
-            if(result < 0)
+            using (IDbConnection connection = new SqlConnection(newString))
             {
+                var result = connection.Query<UserDataSQL>(SQLQueryHelper.GetPlayerDataWithUsername(loginRequest.Username)).FirstOrDefault();
+
+                string hashPass = loginRequest.Password.EncryptPassword(result.Salt);
+
+                var saveDataResult = connection.Query<SavedDataSQL>(SQLQueryHelper.GetSaveDataWithID(result.ID)).FirstOrDefault();
+                List<string> cardsIDs = saveDataResult.DeckCards.Split(",").ToList(); 
+                List<CardObjectSQL> cards = connection.Query<CardObjectSQL>(SQLQueryHelper.GetCardWithIDQuery(saveDataResult.DeckCards)).ToList();
+
+                List<CardObject> cardListFinal = new List<CardObject>();
+                List<string> cardsInventoryIDs = saveDataResult.InventoryCards.Split(",").ToList();
+                List<CardObjectSQL> cardsInventory = connection.Query<CardObjectSQL>(SQLQueryHelper.GetCardWithIDQuery(saveDataResult.DeckCards)).ToList();
+                List<CardObject> inventoryListFinal = new List<CardObject>();
+
+                foreach (var cardId in cardsIDs)
+                {
+                    cardListFinal.Add(new CardObject(cards.First(q => q.ID == int.Parse(cardId))));
+                }
+
+                foreach (var cardId in cardsInventoryIDs)
+                {
+                    inventoryListFinal.Add(new CardObject(cards.First(q => q.ID == int.Parse(cardId))));
+                }
+
+                if (result.UserPassKey != hashPass)
+                {
+                    return new LoginResponse()
+                    {
+                        ErrorMessage = ErrorCases.IncorrectPassword
+                    };
+                }
+
                 return new LoginResponse()
                 {
-                    ErrorMessage = ErrorCases.AppUpdateRequired
-                };
-            }
-            else
-            {
-                return new LoginResponse()
-                {
+                    PlayerId = Newtonsoft.Json.JsonConvert.SerializeObject(cardListFinal),
+                    PlayerData = SQLMapper.MapSQLToSavedDataUnity(saveDataResult, cardListFinal, inventoryListFinal),
+                    EmailAddress = Connection.Database,
                     ErrorMessage = ErrorCases.AllGood
                 };
             }
+
+
+            //Console.WriteLine("VersionCheck");
+            //var appVersion = new Version(loginRequest.AppVersion);
+            //IAsyncCursor<EnvFlags> envCursor = await _context.EnvFlagCollection.FindAsync(p => p.Id == "627d2a5e66c8edf696d0c7db");
+            //var minVersion = new Version(envCursor.FirstOrDefault().MinAppVersion);
+
+            //var result = appVersion.CompareTo(minVersion);
+            //if(result < 0)
+            //{
+            //    return new LoginResponse()
+            //    {
+            //        ErrorMessage = ErrorCases.AppUpdateRequired
+            //    };
+            //}
+            //else
+            //{
+            //    return new LoginResponse()
+            //    {
+            //        ErrorMessage = ErrorCases.AllGood
+            //    };
+            //}
         }
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MySqlConnector;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -83,12 +84,13 @@ namespace ElementsTheAPI
             //services.AddScoped<IPvpHubContext, PvpHubContext>();
             services.AddScoped<ILoginRepository, LoginRepository>();
             services.AddScoped<IUserDataRepository, UserDataRepository>();
+            services.AddTransient(_ => new MySqlConnection(Configuration["ConnectionStrings:Default"]));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsProduction())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger(c =>
@@ -99,7 +101,7 @@ namespace ElementsTheAPI
             };
 
             app.UseCors(builder => builder
-                .WithOrigins("http://localhost", "https://v6p9d9t4.ssl.hwcdn.net") //Allows Localhost and Itch.io
+                .WithOrigins("http://localhost", "https://v6p9d9t4.ssl.hwcdn.net", "https://sparklmonkeygames.com") //Allows Localhost and Itch.io
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()

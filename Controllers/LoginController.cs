@@ -54,5 +54,14 @@ namespace ElementsTheAPI.Controllers
         {
             return Ok(await _repository.CheckAppVersion(loginRequest));
         }
+
+        [AllowAnonymous]
+        [Route("is-alive", Name = "IsAlive")]
+        [HttpGet]
+        [ProducesResponseType(typeof(bool), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<LoginResponse>> CheckStatus()
+        {
+            return Ok(true);
+        }
     }
 }

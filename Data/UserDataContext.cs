@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using ElementsTheAPI.Entities;
+using System.Data.SqlClient;
 
 namespace ElementsTheAPI.Data
 {
@@ -15,11 +16,12 @@ namespace ElementsTheAPI.Data
             SavedDataCollection = database.GetCollection<SavedData>(configuration.GetValue<string>("DatabaseSettings:SavedDataCollectionName"));
             LogCollection = database.GetCollection<LogData>(configuration.GetValue<string>("DatabaseSettings:LogCollectionName"));
             EnvFlagCollection = database.GetCollection<EnvFlags>(configuration.GetValue<string>("DatabaseSettings:EnvFlagsConnectionName"));
-
+            DatabaseSQL = new SqlConnection(configuration.GetValue<string>("ConnectionStrings:Default"));
         }
         public IMongoCollection<UserData> UserDataCollection { get; }
         public IMongoCollection<SavedData> SavedDataCollection { get; }
         public IMongoCollection<LogData> LogCollection { get; }
         public IMongoCollection<EnvFlags> EnvFlagCollection { get; }
+        public SqlConnection DatabaseSQL { get; }
     }
 }

@@ -130,7 +130,7 @@ namespace ElementsTheAPI.Repositories
             string token = _jwtAuth.Authentication(userName, playerId);
             response.Token = token;
             //Create new Saved Data
-            SavedData newSavedData = new SavedData().GetDefault();
+            SavedData newSavedData = new SavedData();
             
             //Update MongoDB with new saved data
             var updateResult = await _context.SavedDataCollection.ReplaceOneAsync(filter: g => g.Id == userData.SavedDataId, replacement: newSavedData);
